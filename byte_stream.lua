@@ -28,11 +28,10 @@ end
 ---------------------------------Public API-------------------------------------
 
 --generate a new stream from a string data
---to predic the future data acces, the wordsize and the endianess are to be provided
-function new_stream(data, wordsize,big_endian)
+--to predic the future data acces, the wordsize is to be provided
+function new_stream(data, wordsize)
     local ret = {}
     ret.data = data
-    ret.big_endian = big_endian
     ret.wordsize = wordsize
     ret.pointer = 1
 
@@ -49,9 +48,6 @@ function new_stream(data, wordsize,big_endian)
         local ret = stream.data:sub(stream.pointer, end_pointer)
         stream.pointer = end_pointer + 1
         ret = pad_zero(ret, stream.wordsize)
-        if not big_endian then
-            ret = flip_string(ret)
-        end
         return ret
     end
 
@@ -61,32 +57,25 @@ end
 --same as the previous function but generates a stream from a file instead
 --of directely the string
 --resturn nil if the fiele can not be read
-function open_file_stream(filename, wordsize, eig_endian)
+function open_file_stream(filename, wordsize)
     local f = io.open(filename, "r")
     if not f then
         return nil
     end
     local data = f.read("a")
-    return new_stream(data, wordsize, big_endian)
+    return new_stream(data, wordsize)
 end
 
 -------------------------------Testing functions--------------------------------
 
 local function test1()
     local data = "123456789"
-    local stream_be = new_stream(data, 2, true)
-    local stream_le = new_stream(data, 2, false)
-    print("Printing words from stream_be")
-    local word = stream_be:read_word()
+    local stream = new_stream(data, 2)
+    print("Printing words from stream")
+    local word = stream:read_word()
     while word do
         print("   "..word)
-        word = stream_be:read_word()
-    end
-    print("Printing words from stream_le")
-    word = stream_le:read_word()
-    while word do
-        print("   "..word)
-        word = stream_le:read_word()
+        word = stream:read_word()
     end
 end
 test1()
