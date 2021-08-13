@@ -9,7 +9,7 @@ word by word with the desired endianess.
 
 --Pad a string with null bytes until is is of the desired size
 local function pad_zero(data, wordsize)
-    local paddig_char = '$' --should be set to '\0' unless foe debuging purpose
+    local paddig_char = '\0' --should be set to '\0' unless foe debuging purpose
     while #data < wordsize do 
         data = data..paddig_char
     end
@@ -66,8 +66,26 @@ function open_file_stream(filename, wordsize)
     return new_stream(data, wordsize)
 end
 
+------------------------------Formating functions-------------------------------
+
+--Used to format a word (a string) in the desired endianess
+--Return a printable string
+function fomat_word(word, big_endian)
+    local string_to_convert = word
+    if not big_endian then
+        string_to_convert = flip_string(string_to_convert)
+    end
+    local ret = ""
+    for i=1,#string_to_convert do
+        local current_byte = string.byte(string_to_convert:sub(i,i))
+        ret = ret..string.format("%02X", current_byte)
+    end
+    return ret
+end
+
 -------------------------------Testing functions--------------------------------
 
+--testing byte stream
 local function test1()
     local data = "123456789"
     local stream = new_stream(data, 2)
@@ -78,5 +96,25 @@ local function test1()
         word = stream:read_word()
     end
 end
-test1()
+--test1()
+
+--testng formating modes
+local function test2()
+    local data = "123456789"
+    local stream = new_stream(data, 4)
+    print("Printing words from stream in big endian")
+    local word = stream:read_word()
+    while word do
+        print("   0x"..fomat_word(word, true))
+        word = stream:read_word()
+    end
+    stream = new_stream(data, 4)
+    print("Printing words from stream in little endian")
+    local word = stream:read_word()
+    while word do
+        print("   0x"..fomat_word(word, false))
+        word = stream:read_word()
+    end
+end
+--test2()
 
