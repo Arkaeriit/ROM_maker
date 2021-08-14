@@ -94,6 +94,9 @@ end
 local function read_args(args)
     local flags = defaut_flags()
     local i = 1
+    if #args == 0 then
+        flags.help = true
+    end
     while i <= #args do
         local arg = args[i]
         if arg == "-help" or arg == "help" or arg == "--help" then
