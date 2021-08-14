@@ -64,7 +64,8 @@ function module.open_file_stream(filename, wordsize)
     if not f then
         return nil
     end
-    local data = f.read("a")
+    local data = f:read("a")
+    f:close()
     return module.new_stream(data, wordsize)
 end
 

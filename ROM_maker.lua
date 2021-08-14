@@ -62,6 +62,99 @@ local function stream_to_rom(stream, name, is_synchronous, big_endian)
     return ret..memory_footer
 end
 
+
+--------------------------------------UI----------------------------------------
+
+--list of the diferent configuration and their defualt value
+local function defaut_flags()
+    local ret = {
+        input_file = "/dev/stdin",
+        is_synchronous = true,
+        big_endian = false,
+        name = "rom",
+        wordsize = 1,
+        output_file = "/dev/stdout",
+        error = false,
+        help = false
+    }
+    return ret
+end
+
+--reads a list of arguments and edit config flags acordingely
+local function read_args(args)
+    local flags = defaut_flags()
+    local i = 1
+    while i <= #args do
+        local arg = args[i]
+        if arg == "-help" or arg == "help" or arg == "--help" then
+            flags.help = true
+        elseif arg == "-name" then
+            local name = args[i+1]
+            i = i + 1
+            flags.name = name
+            if name == nil then
+                flags.error = true
+            end
+        elseif arg == "-input_file" then
+            local name = args[i+1]
+            i = i + 1
+            flags.input_file = name
+            if name == nil then
+                flags.error = true
+            end
+        elseif arg == "-output_file" then
+            local name = args[i+1]
+            i = i + 1
+            flags.output_file = name
+            if name == nil then
+                flags.error = true
+            end
+        elseif arg == "-wordsize" then
+            local wordsize = args[i+1]
+            i = i + 1
+            flags.wordsize = math.tointeger(wordsize)
+            if wordsize == nil or not math.tointeger(flags.wordsize) then
+                flags.error = true
+            end
+        elseif arg == "-big_endian" then
+            flags.big_endian = true
+        elseif arg == "-asynchronous" then
+            flags.is_synchronous = false
+        else
+            flags.error = true
+        end
+        i = i + 1        
+    end
+    return flags
+end
+
+local function main(args)
+    local flags = read_args(args)
+    if flags.error then
+        io.stderr:write(documentation)
+        os.exit(1)
+    end
+    if flags.help then
+        io.stdout:write(documentation)
+        os.exit(0)
+    end
+    local stream = byte_stream.open_file_stream(flags.input_file, flags.wordsize)
+    if stream == nil then
+        io.stderr:write("Error, unable to open ",flags.input_file)
+        os.exit(2)
+    end
+    local f_out = io.open(flags.output_file, "w")
+    if f_out == nil then
+        io.stderr:write("Error, unable to open ",flags.output_file)
+        os.exit(3)
+    end
+    local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian)
+    f_out:write(rom)
+    f_out:close()
+end
+
+main(arg)
+
 -------------------------------Testing functions--------------------------------
 
 --testing the verilog templates
