@@ -37,7 +37,7 @@ function module.new_stream(data, wordsize)
     ret.wordsize = wordsize
     ret.pointer = 1
 
-    --return a wird from the stream
+    --return a word from the stream
     --If all the stream is read, nil is returned
     ret.read_word = function(stream)
         if stream.pointer > #stream.data then

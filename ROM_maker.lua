@@ -40,6 +40,28 @@ local function memory_content(addr, word, data_size, addr_size, big_endian)
     return ret
 end
 
+
+-----------------------------------Main logic-----------------------------------
+
+--Compute the needed addr size to address all the word extracted from a stream
+local function get_needed_size(stream)
+    local number_of_words = math.ceil(#stream.data/stream.wordsize)
+    return math.ceil(math.log(number_of_words)/math.log(2))
+end
+
+--Generate a memory from a byte stream
+local function stream_to_rom(stream, name, is_synchronous, big_endian)
+    local ret = memory_header(name, is_synchronous, stream.wordsize*8, get_needed_size(stream))
+    local addr = 0;
+    local word = stream:read_word()
+    while word do
+        ret = ret..memory_content(addr, word, stream.wordsize*8, get_needed_size(stream), big_endian)
+        addr = addr+1
+        word = stream:read_word()
+    end
+    return ret..memory_footer
+end
+
 -------------------------------Testing functions--------------------------------
 
 --testing the verilog templates
@@ -52,4 +74,14 @@ local function test1()
     print(rom)
 end
 test1()
+
+--testing the stream reading
+local function test2()
+    local data = "123456789"
+    local stream = byte_stream.new_stream(data, 4)
+    print(stream_to_rom(stream, "test_rom2", true, true))
+end
+test2()
+
+
 
