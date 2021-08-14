@@ -14,3 +14,7 @@ List of available arguments:
 ## Output module
 The ouputed Verilog module got a `clk` input if it is synchronous. It got an `enable` input. It got an `addr` bus input for the address and a `data` bus output.
 
+## Installation
+To install ROM\_maker, run `sudo make install`.
+To uninstall it, run `sudo make uninstall`.
+
