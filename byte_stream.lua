@@ -30,7 +30,7 @@ end
 ---------------------------------Public API-------------------------------------
 
 --generate a new stream from a string data
---to predic the future data acces, the wordsize is to be provided
+--to predic the future data acces, the wordsize is to be provided in bytes
 function module.new_stream(data, wordsize)
     local ret = {}
     ret.data = data
@@ -72,7 +72,7 @@ end
 
 --Used to format a word (a string) in the desired endianess
 --Return a printable string
-function module.fomat_word(word, big_endian)
+function module.format_word(word, big_endian)
     local string_to_convert = word
     if not big_endian then
         string_to_convert = flip_string(string_to_convert)
@@ -107,14 +107,14 @@ local function test2()
     print("Printing words from stream in big endian")
     local word = stream:read_word()
     while word do
-        print("   0x"..module.fomat_word(word, true))
+        print("   0x"..module.format_word(word, true))
         word = stream:read_word()
     end
     stream = module.new_stream(data, 4)
     print("Printing words from stream in little endian")
     local word = stream:read_word()
     while word do
-        print("   0x"..module.fomat_word(word, false))
+        print("   0x"..module.format_word(word, false))
         word = stream:read_word()
     end
 end
