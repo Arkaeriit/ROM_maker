@@ -1,6 +1,16 @@
 #!/usr/bin/env lua
 
-local documentation = [[This program is used to make a ROM in Verilog from a binairy file.
+local documentation = [[This program is used to make a ROM in Verilog from a binary file.
+Usage: ROM_maker <arguments...>
+List of available arguments:
+    -name <name>: The name of the Verilog module. Default to "rom".
+    -input_file <file>: The binary file the data is read from. Default to /dev/stdin.
+    -output_file <file>: The file where the Verilog code is written. Default to /dev/stdout.
+    -wordsize <size>: Width in byte of the data bus of the ROM. Default to a single byte.
+    -asynchronous: Use this flag to make the ROM asynchronous. It is synchronous by default.
+    -big_endian: Use this flag to read the data as big endian words. It is read as little endian otherwise.
+
+The ouputed Verilog module got a clk input if it is synchronous. It got an enable input. It got an addr bus input for the address and a data bus output.
 ]]
 
 local byte_stream = require("byte_stream")
@@ -140,20 +150,18 @@ local function main(args)
     end
     local stream = byte_stream.open_file_stream(flags.input_file, flags.wordsize)
     if stream == nil then
-        io.stderr:write("Error, unable to open ",flags.input_file)
+        io.stderr:write("Error, unable to open ",flags.input_file,'\n')
         os.exit(2)
     end
     local f_out = io.open(flags.output_file, "w")
     if f_out == nil then
-        io.stderr:write("Error, unable to open ",flags.output_file)
+        io.stderr:write("Error, unable to open ",flags.output_file,'\n')
         os.exit(3)
     end
     local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian)
     f_out:write(rom)
     f_out:close()
 end
-
-main(arg)
 
 -------------------------------Testing functions--------------------------------
 
@@ -166,7 +174,7 @@ local function test1()
     rom = rom..memory_footer
     print(rom)
 end
-test1()
+--test1()
 
 --testing the stream reading
 local function test2()
@@ -174,7 +182,9 @@ local function test2()
     local stream = byte_stream.new_stream(data, 4)
     print(stream_to_rom(stream, "test_rom2", true, true))
 end
-test2()
+--test2()
 
+----------------------------------Running main-----------------------------------
 
+main(arg)
 
