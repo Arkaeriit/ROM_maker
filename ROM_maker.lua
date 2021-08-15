@@ -7,6 +7,7 @@ List of available arguments:
     -input_file <file>: The binary file the data is read from. Default to /dev/stdin.
     -output_file <file>: The file where the Verilog code is written. Default to /dev/stdout.
     -wordsize <size>: Width in byte of the data bus of the ROM. Default to a single byte.
+    -start_addr <addr>: Address of the first word from the file. Default to 0.
     -asynchronous: Use this flag to make the ROM asynchronous. It is synchronous by default.
     -big_endian: Use this flag to read the data as big endian words. It is read as little endian otherwise.
 
@@ -60,9 +61,9 @@ local function get_needed_size(stream)
 end
 
 --Generate a memory from a byte stream
-local function stream_to_rom(stream, name, is_synchronous, big_endian)
+local function stream_to_rom(stream, name, is_synchronous, big_endian, start_addr)
     local ret = memory_header(name, is_synchronous, stream.wordsize*8, get_needed_size(stream))
-    local addr = 0;
+    local addr = start_addr;
     local word = stream:read_word()
     while word do
         ret = ret..memory_content(addr, word, stream.wordsize*8, get_needed_size(stream), big_endian)
@@ -80,6 +81,7 @@ local function defaut_flags()
     local ret = {
         input_file = "/dev/stdin",
         is_synchronous = true,
+        start_addr = 0,
         big_endian = false,
         name = "rom",
         wordsize = 1,
@@ -129,6 +131,13 @@ local function read_args(args)
             if wordsize == nil or not math.tointeger(flags.wordsize) then
                 flags.error = true
             end
+        elseif arg == "-start_addr" then
+            local start_addr = args[i+1]
+            i = i + 1
+            flags.start_addr = math.tointeger(start_addr)
+            if start_addr == nil or not math.tointeger(flags.start_addr) then
+                flags.error = true
+            end
         elseif arg == "-big_endian" then
             flags.big_endian = true
         elseif arg == "-asynchronous" then
@@ -144,6 +153,7 @@ end
 local function main(args)
     local flags = read_args(args)
     if flags.error then
+        io.stderr:write("Error, invalid arguments.\n\n")
         io.stderr:write(documentation)
         os.exit(1)
     end
@@ -161,7 +171,7 @@ local function main(args)
         io.stderr:write("Error, unable to open ",flags.output_file,'\n')
         os.exit(3)
     end
-    local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian)
+    local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian, flags.start_addr)
     f_out:write(rom)
     f_out:close()
 end
@@ -183,7 +193,7 @@ end
 local function test2()
     local data = "123456789"
     local stream = byte_stream.new_stream(data, 4)
-    print(stream_to_rom(stream, "test_rom2", true, true))
+    print(stream_to_rom(stream, "test_rom2", true, true, 2))
 end
 --test2()
 
