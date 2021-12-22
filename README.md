@@ -4,6 +4,7 @@ This program is used to make a ROM in Verilog from a binary file.
 ## Usage
 Usage: ROM\_maker <arguments...>
 List of available arguments:
+
 - name <name>: The name of the Verilog module. Default to "rom".
 - input\_file <file>: The binary file the data is read from. Default to `/dev/stdin`.
 - output\_file <file>: The file where the Verilog code is written. Default to `/dev/stdout`.
