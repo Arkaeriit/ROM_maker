@@ -11,6 +11,7 @@ List of available arguments:
 - wordsize <size>: Width in byte of the data bus of the ROM. Default to a single byte.
 - asynchronous: Use this flag to make the ROM asynchronous. It is synchronous by default.
 - big\_endian: Use this flag to read the data as big endian words. It is read as little endian otherwise.
+- min\_addr\_size <size>: minimum width of the address bus.
 
 ## Output module
 The ouputed Verilog module got a `clk` input if it is synchronous. It got an `enable` input. It got an `addr` bus input for the address and a `data` bus output.

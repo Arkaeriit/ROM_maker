@@ -10,6 +10,7 @@ List of available arguments:
     -start_addr <addr>: Address of the first word from the file. Default to 0.
     -asynchronous: Use this flag to make the ROM asynchronous. It is synchronous by default.
     -big_endian: Use this flag to read the data as big endian words. It is read as little endian otherwise.
+    -min_addr_size <size>: minimum width of the address bus.
 
 The ouputed Verilog module got a clk input if it is synchronous. It got an enable input. It got an addr bus input for the address and a data bus output.
 ]]
@@ -54,6 +55,14 @@ end
 
 -----------------------------------Main logic-----------------------------------
 
+local function max(a, b)
+    if a > b then
+        return a
+    else
+        return b
+    end
+end
+
 --Compute the needed addr size to address all the word extracted from a stream
 local function get_needed_size(stream)
     local number_of_words = math.ceil(#stream.data/stream.wordsize)
@@ -61,12 +70,12 @@ local function get_needed_size(stream)
 end
 
 --Generate a memory from a byte stream
-local function stream_to_rom(stream, name, is_synchronous, big_endian, start_addr)
-    local ret = memory_header(name, is_synchronous, stream.wordsize*8, get_needed_size(stream))
+local function stream_to_rom(stream, name, is_synchronous, big_endian, start_addr, min_addr_size)
+    local ret = memory_header(name, is_synchronous, stream.wordsize*8, max(min_addr_size, get_needed_size(stream)))
     local addr = start_addr;
     local word = stream:read_word()
     while word do
-        ret = ret..memory_content(addr, word, stream.wordsize*8, get_needed_size(stream), big_endian)
+        ret = ret..memory_content(addr, word, stream.wordsize*8, max(min_addr_size, get_needed_size(stream)), big_endian)
         addr = addr+1
         word = stream:read_word()
     end
@@ -85,6 +94,7 @@ local function defaut_flags()
         big_endian = false,
         name = "rom",
         wordsize = 1,
+        min_addr_size = 0,
         output_file = "/dev/stdout",
         error = false,
         help = false
@@ -138,6 +148,13 @@ local function read_args(args)
             if start_addr == nil or not math.tointeger(flags.start_addr) then
                 flags.error = true
             end
+        elseif arg == "-min_addr_size" then
+            local min_addr_size = args[i+1]
+            i = i + 1
+            flags.min_addr_size = math.tointeger(min_addr_size)
+            if min_addr_size == nil or not math.tointeger(flags.min_addr_size) then
+                flags.error = true
+            end
         elseif arg == "-big_endian" then
             flags.big_endian = true
         elseif arg == "-asynchronous" then
@@ -171,7 +188,7 @@ local function main(args)
         io.stderr:write("Error, unable to open ",flags.output_file,'\n')
         os.exit(3)
     end
-    local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian, flags.start_addr)
+    local rom = stream_to_rom(stream, flags.name, flags.is_synchronous, flags.big_endian, flags.start_addr, flags.min_addr_size)
     f_out:write(rom)
     f_out:close()
 end
